@@ -7,5 +7,11 @@ export const metadata = {
 export const viewport = {themeColor: "#111c2e"};
 
 export default function RootLayout({children}) {
-  return <html lang="en"><body>{children}</body></html>;
+  return (
+    <html lang="en">
+      <body className="bg-background text-foreground font-poppins min-h-screen">
+        {children}
+      </body>
+    </html>
+  );
 }

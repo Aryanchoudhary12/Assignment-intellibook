@@ -7,9 +7,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
   loading?: boolean;
 }
+
 function Button({
   className = "",
-  variant,
+  variant = "default",
+  size = "medium",
   children,
   loading = false,
   ...props
@@ -30,7 +32,7 @@ function Button({
   return (
     <button
       {...props}
-      className={`${variantClasses[variant || "default"]} ${sizeClasses[props.size || "medium"]} rounded-full font-poppins font-semibold flex items-center justify-center relative  ${className}`}
+      className={`${variantClasses[variant]} ${sizeClasses[size]} rounded-full font-poppins font-semibold flex items-center justify-center relative ${className}`}
     >
       {loading ? <ImSpinner9 className="animate-spin" /> : children}
     </button>

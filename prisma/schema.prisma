@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Contract {
+  id             String   @id @map("_id")
+  owner          String
+  name           String
+  size           Int
+  uploadedAt     DateTime @default(now())
+  status         String   @default("processing")
+  running        Boolean  @default(false)
+  error          String?
+  findings       Json?
+  embeddingModel String?
+  chatRevision   Int      @default(0)
+
+  @@index([owner, uploadedAt])
+  @@index([status, running, uploadedAt])
+}
+
+model FilePart {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  owner      String
+  contractId String
+  position   Int
+  bytes      Bytes
+
+  @@unique([owner, contractId, position])
+}
+
+model Clause {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  owner      String
+  contractId String
+  ordinal    Int
+  title      String
+  parts      Json
+
+  @@unique([owner, contractId, ordinal])
+}
+
+model Chunk {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  owner      String
+  contractId String
+  ordinal    Int
+  clauseId   Int
+  location   String
+  text       String
+  vector     Bytes
+
+  @@unique([owner, contractId, ordinal])
+}
+
+model Turn {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  owner      String
+  contractId String
+  question   String
+  answer     Json
+  createdAt  DateTime @default(now())
+
+  @@index([owner, contractId, createdAt])
+}

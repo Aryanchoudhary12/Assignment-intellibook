@@ -1,0 +1,40 @@
+{
+  "name": "clausebook",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "next dev --hostname localhost",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --test tests/*.test.mjs",
+    "db:push": "prisma db push --skip-generate",
+    "generate": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "@tailwindcss/postcss": "^4.3.5",
+    "jose": "^6.1.0",
+    "next": "^16.0.10",
+    "pdfjs-dist": "^5.4.0",
+    "postcss": "^8.5.33",
+    "prisma": "6.19.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-icons": "^5.7.0",
+    "saxes": "^6.0.0",
+    "tailwindcss": "^4.3.5",
+    "yauzl": "^3.2.0",
+    "zustand": "^5.0.0"
+  },
+  "packageManager": "pnpm@11.25.0",
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "mongodb": "7.9.1",
+    "typescript": "^7.0.2"
+  }
+}

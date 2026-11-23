@@ -1,0 +1,11 @@
+.env*
+!.env.example
+.next/
+node_modules/
+data/
+*.log
+.clausebook/
+launcher/windows/payload.zip
+
+Clausebook-Start-win-x64.exe
+clausebook-demo.mp4

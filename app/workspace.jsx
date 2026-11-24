@@ -6,17 +6,16 @@ import Button from "./button";
 import { IoSend } from "react-icons/io5";
 
 const calendar = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
-function metadata(doc) {
-  const size =
-    doc.size < 1024
-      ? doc.size + " B"
-      : doc.size < 1024 * 1024
-        ? (doc.size / 1024).toFixed(1) + " KB"
-        : (doc.size / (1024 * 1024)).toFixed(1) + " MB";
-  return size + " · " + calendar.format(new Date(doc.uploaded_at));
-}
+const formatSize = (b) =>
+  b < 1024
+    ? `${b} B`
+    : b < 1048576
+      ? `${(b / 1024).toFixed(1)} KB`
+      : `${(b / 1048576).toFixed(1)} MB`;
+const metadata = (doc) =>
+  `${formatSize(doc.size)} · ${calendar.format(new Date(doc.uploaded_at))}`;
 
-const statusColors = {
+const STATUS_STYLES = {
   found: "bg-[#e4f4eb] text-[#21553b]",
   reviewed: "bg-[#e4f4eb] text-[#21553b]",
   "not-found": "bg-[#eaf0f7] text-[#405273]",
@@ -27,10 +26,9 @@ const statusColors = {
 };
 
 function Status({ status }) {
-  const color = statusColors[status] || "bg-surface text-muted";
   return (
     <span
-      className={`inline-flex w-max items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${color}`}
+      className={`inline-flex w-max items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLES[status] || "bg-surface text-muted"}`}
     >
       {status[0].toUpperCase() + status.slice(1)}
     </span>
@@ -49,9 +47,7 @@ function FileMark({ large = false }) {
   return (
     <span
       aria-hidden="true"
-      className={`relative shrink-0 rounded-lg bg-accent/25 flex items-center justify-center border border-primary/30 ${
-        large ? "w-10 h-10 scale-110 origin-left" : "w-8 h-8.5"
-      }`}
+      className={`relative shrink-0 rounded-lg bg-accent/25 flex items-center justify-center border border-primary/30 ${large ? "w-10 h-10 scale-110 origin-left" : "w-8 h-8.5"}`}
     >
       <svg
         className={large ? "w-5 h-5 text-primary" : "w-4 h-4 text-primary"}
@@ -119,8 +115,8 @@ function Quote({ source, onOpen }) {
   return (
     <button
       type="button"
-      className="mt-2 block w-full text-left bg-surface text-foreground border border-border border-l-[3px] border-l-primary rounded-md px-2.5 py-2 cursor-pointer transition-colors duration-150 hover:bg-accent/20"
       onClick={() => onOpen(source)}
+      className="mt-2 block w-full text-left bg-surface text-foreground border border-border border-l-[3px] border-l-primary rounded-md px-2.5 py-2 cursor-pointer transition-colors duration-150 hover:bg-accent/20"
     >
       <span className="block whitespace-pre-wrap text-[0.85rem] font-normal wrap-anywhere">
         “{source.quote}”
@@ -166,9 +162,9 @@ function Library({ fileInput }) {
           aria-label="Upload contract file"
           accept=".pdf,.docx,.txt"
           hidden
-          onChange={(event) => {
-            const [file] = event.target.files;
-            event.target.value = "";
+          onChange={(e) => {
+            const [file] = e.target.files;
+            e.target.value = "";
             if (file) upload(file);
           }}
         />
@@ -233,7 +229,7 @@ function Checklist({ contract, onOpen }) {
             <span
               key={status}
               className={`inline-flex w-max items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${
-                statusColors[status] || "bg-surface text-muted"
+                STATUS_STYLES[status] || "bg-surface text-muted"
               }`}
             >
               {
@@ -361,9 +357,11 @@ function Chat({ onOpen }) {
     useWorkspace();
   const log = useRef(null);
   const enabled = contract?.status === "reviewed";
+
   useEffect(() => {
     if (log.current) log.current.scrollTop = log.current.scrollHeight;
   }, [turns, pending]);
+
   const items = pending ? [...turns, pending] : turns;
 
   return (
@@ -412,8 +410,8 @@ function Chat({ onOpen }) {
       </div>
       <form
         className="border-t border-border p-3 sm:p-3.5"
-        onSubmit={(event) => {
-          event.preventDefault();
+        onSubmit={(e) => {
+          e.preventDefault();
           ask();
         }}
       >
@@ -426,12 +424,11 @@ function Chat({ onOpen }) {
         <div className="flex gap-2 items-end">
           <input
             id="question"
-            rows={2}
             maxLength={1200}
             placeholder="E.g. When is payment due?"
             disabled={!enabled || Boolean(pending)}
             value={question}
-            onChange={(event) => setQuestion(event.target.value)}
+            onChange={(e) => setQuestion(e.target.value)}
             className="w-full min-w-0 resize-y border border-border rounded-lg p-2 text-sm text-foreground bg-white focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-50"
           />
           <Button
@@ -463,9 +460,8 @@ function Highlight({ clause, source }) {
     const onOrAfter = whole.indexOf(source.quote, prefix.length);
     if (onOrAfter >= 0) start = onOrAfter;
   }
-  return start < 0 ? (
-    whole
-  ) : (
+  if (start < 0) return whole;
+  return (
     <>
       {whole.slice(0, start)}
       <mark className="bg-[#ffedb8] text-inherit rounded-xs px-0.5">
@@ -500,8 +496,8 @@ export default function Workspace() {
   const processing = docs.some((doc) => doc.status === "processing");
 
   useEffect(() => {
-    let gone = false;
-    let unsubscribe;
+    let gone = false,
+      unsubscribe;
     connect().then((cleanup) => {
       if (gone) cleanup?.();
       else unsubscribe = cleanup;
@@ -555,14 +551,13 @@ export default function Workspace() {
 
   return (
     <>
-      <header className="min-h-[4.15rem] sticky top-0 z-30  flex items-center gap-4 px-4 sm:px-6 border-b border-b-border backdrop-blur-2xl">
+      <header className="min-h-[4.15rem] sticky top-0 z-30 flex items-center gap-4 px-4 sm:px-6 border-b border-b-border backdrop-blur-2xl">
         <a
           className="inline-flex items-center gap-2.5 font-bold text-primary text-xl tracking-tight no-underline"
           href="/"
           aria-label="Clausebook home"
         >
-          <BrandIcon />
-          Clausebook
+          <BrandIcon /> Clausebook
         </a>
         <span className="text-primary-hover border-l border-[#41516a] pl-4 text-sm hidden sm:inline">
           Contract review workspace
@@ -583,6 +578,7 @@ export default function Workspace() {
           </div>
         )}
       </header>
+
       {user ? (
         <main className="grid grid-cols-[minmax(13rem,16.5rem)_minmax(0,1fr)_minmax(17rem,22rem)] min-h-[calc(100dvh-4.15rem)] max-lg:grid-cols-[13rem_minmax(0,1fr)_17rem] max-md:grid-cols-[12.5rem_minmax(0,1fr)] max-sm:block">
           <Library fileInput={fileInput} />
@@ -623,6 +619,7 @@ export default function Workspace() {
           </div>
         </main>
       )}
+
       <dialog
         ref={clauseDialog}
         className="w-[min(42rem,calc(100%-1.5rem))] max-h-[85dvh] p-5 border border-border text-foreground rounded-xl shadow-[0_18px_70px_rgba(16,23,37,0.3)] bg-white backdrop:bg-[#142239]/60"
@@ -657,6 +654,7 @@ export default function Workspace() {
           )}
         </div>
       </dialog>
+
       <dialog
         ref={deleteDialog}
         className="w-[min(29rem,calc(100%-1.5rem))] p-5 border border-border text-foreground rounded-xl shadow-[0_18px_70px_rgba(16,23,37,0.3)] bg-white backdrop:bg-[#142239]/60"
